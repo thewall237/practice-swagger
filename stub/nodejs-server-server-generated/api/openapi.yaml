@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Shop Review API
+  description: |
+    # Features
+    - Get reviews.
+    - Post review.
+  termsOfService: https://tastylog.com/terms/
+  contact:
+    name: Customer Support
+    url: https://tastylog.com/support/
+    email: support-desk@tastylog.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+servers:
+- url: "http://localhost:{port}"
+  description: Local Development
+  variables:
+    port:
+      enum:
+      - "3000"
+      - "8080"
+      default: "3000"
+- url: https://it1.tastylog.com/v1
+  description: Integration Test
+- url: https://stg.tastylog.com/v1
+  description: Staging
+- url: https://api.tastylog.com/v1
+  description: Production
+security:
+- apikey_auth: []
+tags:
+- name: reviews
+  description: Shop review operation
+paths:
+  /shops/{shopId}/reviews:
+    get:
+      tags:
+      - reviews
+      summary: Get shop review
+      description: Get specified shop's reviews
+      operationId: shopsShopIdReviewsGET
+      parameters:
+      - name: shopId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: abcdefg
+      responses:
+        "200":
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+                x-content-type: application/json
+      security: []
+      x-swagger-router-controller: Reviews
+    post:
+      tags:
+      - reviews
+      summary: Create new review
+      description: Create specified shop's new review
+      operationId: shopsShopIdReviewsPOST
+      parameters:
+      - name: shopId
+        in: path
+        description: Shop identifier
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Contents of review
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      responses:
+        "201":
+          description: Success operation
+          headers:
+            location:
+              description: New URL of created review
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: url
+        "400":
+          description: Client side error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-swagger-router-controller: Reviews
+components:
+  schemas:
+    Review:
+      type: object
+      properties:
+        score:
+          type: integer
+        comment:
+          type: string
+      example:
+        score: 0
+        comment: comment
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error_errors'
+    Int:
+      maximum: 100
+      exclusiveMaximum: true
+      minimum: 0
+      exclusiveMinimum: false
+      type: integer
+    String:
+      maxLength: 20
+      minLength: 10
+      type: string
+      nullable: true
+    Boolean:
+      type: boolean
+    Object:
+      type: object
+      properties:
+        shop:
+          $ref: '#/components/schemas/Object_shop'
+        review":
+          type: array
+          items:
+            $ref: '#/components/schemas/Object_review'
+    Error_errors:
+      type: object
+      properties:
+        field:
+          type: string
+        code:
+          type: string
+      example: null
+    Object_shop:
+      type: object
+      properties:
+        name: {}
+        place: {}
+      example: null
+    Object_review:
+      type: object
+      properties:
+        score:
+          type: integer
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+        comment:
+          type: string
+      example: null
+  responses:
+    "400-BadRequest":
+      description: Client side error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    apikey_auth:
+      type: apiKey
+      description: API Key authorization
+      name: X-Api-Key
+      in: header
